@@ -55,6 +55,13 @@ add_executable(typing ${WIN32_FLAG}
 
 target_link_libraries(typing PRIVATE Qt6::Widgets)
 
+# Windows：把 .ico 写入可执行文件资源，资源管理器/任务栏显示应用图标
+if(WIN32)
+    set(_typing_rc "${CMAKE_CURRENT_BINARY_DIR}/typing_icon.rc")
+    file(WRITE "${_typing_rc}" "IDI_ICON1 ICON \"${CMAKE_SOURCE_DIR}/res/app_icon.ico\"\n")
+    target_sources(typing PRIVATE "${_typing_rc}")
+endif()
+
 # 安装
 include(GNUInstallDirs)
 install(TARGETS typing
