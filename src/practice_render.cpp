@@ -61,9 +61,11 @@ void PracticeView::refresh()
     }
 
     const int indentW = 2 * charWidth();
+    // 左右 padding 必须对称留足：此前当前行 padding-right:2px 导致行尾 ; 被裁切
     auto rowStyle = [indentW](int basePad, bool indent) {
-        return QStringLiteral("font-size:20px;padding-left:%1px;padding-right:18px;")
-            .arg(basePad + (indent ? indentW : 0));
+        return QStringLiteral("font-size:20px;padding-left:%1px;padding-right:%2px;")
+            .arg(basePad + (indent ? indentW : 0))
+            .arg(kLinePadRight);
     };
     const bool lineChanged = (lineIdx_ != lastRenderLine_);
     lastRenderLine_ = lineIdx_;
@@ -132,16 +134,20 @@ void PracticeView::refresh()
     lineLabel_->setTarget(hiStart, hl);
     if (lineChanged) {
         lineLabel_->setLastRow(lineIdx_ == lines_.size() - 1);
-        lineLabel_->setStyleSheet(QStringLiteral("font-size:20px;padding-left:%1px;padding-right:2px;")
-                                     .arg(curIndent ? indentW : 0));
+        lineLabel_->setStyleSheet(QStringLiteral(
+            "font-size:20px;padding-left:%1px;padding-right:%2px;")
+                                     .arg(curIndent ? indentW : 0)
+                                     .arg(kLinePadRight));
     }
 
     const int wantPad = curIndent ? indentW : 0;
     if (wantPad != lastInputIndent_) {
         lastInputIndent_ = wantPad;
+        // 右侧留白与原文行一致，避免输入尾字符贴边被裁
         input_->setStyleSheet(QStringLiteral(
             "QLineEdit{background:transparent;border:none;"
-            "font-size:20px;color:#1e40af;padding:6px 2px 4px 0px;}"));
+            "font-size:20px;color:#1e40af;padding:6px %1px 4px 0px;}")
+                                 .arg(kLinePadRight));
         input_->setLeftPad(wantPad);
     }
     input_->setLineLayout(cur, typedLen_, lineIdx_ != lines_.size() - 1);

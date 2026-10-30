@@ -18,19 +18,29 @@
 #include <QInputMethodEvent>
 #include <QResizeEvent>
 #include <QStandardItemModel>
+#include <QSizePolicy>
 
 // 练习行标签（自绘、支持两端对齐与当前行分段着色）
 static JustifiedLabel* makeRowLabel(const QString& color, int height)
 {
     JustifiedLabel* l = new JustifiedLabel(color, height);
-    l->setStyleSheet(QStringLiteral("font-size:20px;padding-left:18px;padding-right:18px;"));
+    l->setStyleSheet(QStringLiteral("font-size:20px;padding-left:18px;padding-right:%1px;")
+                         .arg(kLinePadRight));
     return l;
+}
+
+// 顶部长文案标签：忽略内容理想宽度，否则会卡住窗口最小宽度
+static void shrinkableLabel(QLabel* l)
+{
+    l->setMinimumWidth(0);
+    l->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 }
 
 PracticeView::PracticeView(QWidget* parent) : QWidget(parent)
 {
     articleLabel_ = new QLabel(QStringLiteral("尚未选择文章"), this);
     articleLabel_->setStyleSheet("font-size:15px;font-weight:bold;color:#0f172a;");
+    shrinkableLabel(articleLabel_);
 
     mode_ = new QComboBox(this);
     mode_->addItem(QStringLiteral("单字练习"));
@@ -59,11 +69,14 @@ PracticeView::PracticeView(QWidget* parent) : QWidget(parent)
     hintLabel_->setTextFormat(Qt::RichText);
     hintLabel_->setStyleSheet("font-size:18px;color:#334155;");
     hintLabel_->setFixedHeight(30);
+    shrinkableLabel(hintLabel_);
 
     // 统计信息
     statsLabel_ = new QLabel(this);
     statsLabel_->setStyleSheet("color:#475569;font-size:13px;");
     statsLabel_->setFixedHeight(22);
+    statsLabel_->setTextFormat(Qt::RichText);
+    shrinkableLabel(statsLabel_);
 
     // 已完成行（原文+输入成对，最多展示最近 2 行）
     done2Line_ = makeRowLabel("#94a3b8", 24);
@@ -76,6 +89,8 @@ PracticeView::PracticeView(QWidget* parent) : QWidget(parent)
     lineCard_->setObjectName("lineCard");
     lineCard_->setStyleSheet(
         "#lineCard{background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;}");
+    lineCard_->setMinimumWidth(0);
+    lineCard_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     lineLabel_ = new JustifiedLabel("#0f172a", 34, this);
     lineLabel_->setStyleSheet("font-size:20px;");
@@ -129,6 +144,7 @@ PracticeView::PracticeView(QWidget* parent) : QWidget(parent)
     rightCard_->setStyleSheet(
         "#rightCard{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;}");
     rightCard_->setFixedWidth(330);
+    rightCard_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     rightTitle_ = new QLabel(QStringLiteral("句子对照"), rightCard_);
     rightTitle_->setStyleSheet("font-size:15px;font-weight:bold;color:#334155;");
     rightTitle_->setWordWrap(true);

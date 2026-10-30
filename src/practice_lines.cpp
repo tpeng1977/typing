@@ -1,7 +1,9 @@
 #include "practice.h"
+#include "practice_internal.h"
 #include "justifiedlabel.h"
 #include <QFont>
 #include <QFontMetrics>
+#include <QFrame>
 
 // ============================================================================
 // 折行：把当前练习正文按可用宽度切成整齐的“练习行”。
@@ -9,6 +11,18 @@
 // 每段首行缩进两字符（缩进通过标签 padding 实现，不进入匹配文本，
 // 且该行按“可用宽度-缩进”折行，保证右边缘与其他行对齐）。
 // ============================================================================
+
+// 文本像素宽：取 advance 与 boundingRect 较大值，避免 ;,. 等 right-bearing 被低估
+static int textPixWidth(const QFontMetrics& fm, const QString& s)
+{
+    if (s.isEmpty()) return 0;
+    return qMax(fm.horizontalAdvance(s), fm.boundingRect(s).width());
+}
+
+static int charPixWidth(const QFontMetrics& fm, QChar c)
+{
+    return textPixWidth(fm, QString(c));
+}
 
 // Word 文档式换行（中文）：整段按可用宽度自然折行，行满宽度、左右对齐，
 // 仅段落最后一行允许不齐。
@@ -39,7 +53,7 @@ void PracticeView::buildLines()
             int w = 0;
             while (i < end) {
                 const QChar c = body_.at(i);
-                const int cw = fm.horizontalAdvance(c);
+                const int cw = charPixWidth(fm, c);
                 if (w + cw > limit && i > start) break;
                 w += cw;
                 ++i;
@@ -101,7 +115,8 @@ void PracticeView::wrapEnglish()
         }
         const int sp = body_.indexOf(QLatin1Char(' '), i);
         const int end = (sp < 0) ? n : sp;
-        const int wordW = fm.horizontalAdvance(body_.mid(i, end - i));
+        const QString word = body_.mid(i, end - i);
+        const int wordW = textPixWidth(fm, word);
         const int addW = (i > lineStart) ? (spaceW + wordW) : wordW;
         const int limit = firstLine ? qMax(1, avail - indentW) : avail;
         if (lineW + addW > limit && lineW > 0) {
@@ -139,10 +154,19 @@ void PracticeView::wrapEnglish()
 
 int PracticeView::textAvailWidth() const
 {
-    // 左列可用宽度 = 窗口宽 - 右侧面板宽 - 间距 - 页边距(10×2) - 卡片内边距(18×2)
+    // 返回「非缩进行」的文字最大可用宽。
+    // 缩进行再在折行逻辑里减 indentW。
+    // 扣除：右 padding + 边框余量 + 字形 overhang（分号等 right-bearing）。
+    // 下限 120：无界面自检/未完成布局时避免逐字折行导致匹配错乱。
     const int rightW = rightCard_ ? rightCard_->width() : 0;
     const int gap = rightCard_ ? 10 : 0;
-    return qMax(120, width() - rightW - gap - 20 - 36);
+    int labelW = width() - rightW - gap - 20 - 36 - 2;
+    // 窗口已合理布局时，改用实测宽度（更准，避免估宽偏大把行尾画出界）
+    if (lineLabel_ && lineLabel_->width() > 200)
+        labelW = lineLabel_->width();
+    else if (lineCard_ && lineCard_->width() > 200)
+        labelW = lineCard_->contentsRect().width();
+    return qMax(120, labelW - kLinePadRight - kWrapSafety);
 }
 
 int PracticeView::charWidth() const

@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QFontMetrics>
+#include <QSizePolicy>
 #include <QVector>
 #include <QPair>
 
@@ -10,6 +11,19 @@ JustifiedLabel::JustifiedLabel(const QString& color, int height, QWidget* parent
 {
     setFixedHeight(height);
     setTextFormat(Qt::PlainText);
+    // Expanding：随布局伸缩；最小宽不绑定全文，窗口才能横向缩小
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    setMinimumWidth(0);
+}
+
+QSize JustifiedLabel::sizeHint() const
+{
+    return QSize(120, height());
+}
+
+QSize JustifiedLabel::minimumSizeHint() const
+{
+    return QSize(0, height());
 }
 
 void JustifiedLabel::setTarget(int start, int len)
@@ -52,11 +66,14 @@ void JustifiedLabel::paintEvent(QPaintEvent*)
 
     const int baseline = r.top() + (r.height() - fm.height()) / 2 + fm.ascent();
     const int baseSpace = fm.horizontalAdvance(QLatin1Char(' '));
+    // 两端对齐时右缘内缩，避免末词字形 right-bearing（如 ';'）画到控件外被裁切
+    constexpr int kEdgeInset = 2;
+    const int layoutW = qMax(1, r.width() - kEdgeInset);
     int wordSum = 0;
     for (const auto& w : words)
         wordSum += fm.horizontalAdvance(text.mid(w.first, w.second - w.first));
     const int gaps = words.size() - 1;
-    const int extra = r.width() - wordSum - gaps * baseSpace;
+    const int extra = layoutW - wordSum - gaps * baseSpace;
     const bool justify = !lastRow_ && words.size() > 1 && extra > 0;
 
     int x = r.left();

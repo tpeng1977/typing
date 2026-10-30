@@ -21,6 +21,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
     setWindowTitle(QStringLiteral("打字练习 %1").arg(APP_VERSION_ZH));
     resize(1180, 780);
+    // 允许横向缩小；具体下限由布局/练习区可缩标签保证
+    setMinimumSize(720, 480);
 
     // ---- 文章库 ----
     libList_ = new QListWidget(this);
@@ -66,7 +68,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     cl->addWidget(tabs_, 1);
     setCentralWidget(central);
 
-    statusBar()->showMessage(QStringLiteral("提示：阅读页中把鼠标移到字/词上可查看五笔编码与拼音；练习页用系统输入法（拼音/五笔）输入当前字词，自动前进。顶部「显示编码提示」可随时关闭所有提示。"));
+    // 状态栏长文案会抬高窗口最小宽度，导致只能拉大不能缩小；改短提示 + tooltip
+    statusBar()->setSizeGripEnabled(true);
+    statusBar()->showMessage(QStringLiteral("提示：悬停/点击可查看编码；练习页用系统输入法跟打。"));
+    statusBar()->setToolTip(QStringLiteral(
+        "阅读页：把鼠标移到字/词上可查看五笔编码与拼音；点击查看详情。\n"
+        "练习页：用系统输入法（拼音/五笔）输入当前字词，自动前进。\n"
+        "顶部「显示编码提示」可随时关闭所有提示。"));
 
     // 常驻右侧：代码版本与编译时间
     QLabel* verLabel = new QLabel(

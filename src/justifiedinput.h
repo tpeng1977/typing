@@ -16,6 +16,8 @@ public:
     void setLeftPad(int px) { leftPad_ = px; update(); }
     // 当前 IME 预编辑串（汉字上屏前的编码字母），供测试与调试
     QString preeditString() const { return preedit_; }
+    QSize sizeHint() const override { return QSize(120, QLineEdit::sizeHint().height()); }
+    QSize minimumSizeHint() const override { return QSize(0, QLineEdit::minimumSizeHint().height()); }
 protected:
     void paintEvent(QPaintEvent*) override;
     void inputMethodEvent(QInputMethodEvent* e) override;

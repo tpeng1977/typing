@@ -15,6 +15,9 @@ public:
     void setTarget(int start, int len);
     // 文章最后一行不两端对齐（Word 规则）
     void setLastRow(bool last);
+    // 宽度由布局分配；勿按整行文本撑死最小宽度（否则窗口只能横向拉大不能缩小）
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
 protected:
     void paintEvent(QPaintEvent*) override;
 private:

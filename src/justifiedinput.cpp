@@ -4,10 +4,16 @@
 #include <QFontMetrics>
 #include <QInputMethodEvent>
 #include <QFocusEvent>
+#include <QSizePolicy>
 #include <QVector>
 #include <QPair>
 
-JustifiedInputLine::JustifiedInputLine(QWidget* parent) : QLineEdit(parent) {}
+JustifiedInputLine::JustifiedInputLine(QWidget* parent) : QLineEdit(parent)
+{
+    // 不按已输入全文计算最小宽，避免练习中途窗口无法横向缩小
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    setMinimumWidth(0);
+}
 
 void JustifiedInputLine::setLineLayout(const QString& fullLine, int typedLen, bool justified)
 {
@@ -127,11 +133,13 @@ void JustifiedInputLine::paintEvent(QPaintEvent*)
     }
 
     const int baseSpace = fm.horizontalAdvance(QLatin1Char(' '));
+    // 与 JustifiedLabel 一致：右缘内缩，末字符（;,. 等）不被裁切
+    constexpr int kEdgeInset = 2;
     int wordSum = 0;
     for (const auto& w : words)
         wordSum += fm.horizontalAdvance(fullLine_.mid(w.first, w.second - w.first));
     const int gaps = words.size() - 1;
-    const int extra = r.width() - leftPad_ - wordSum - gaps * baseSpace;
+    const int extra = r.width() - leftPad_ - kEdgeInset - wordSum - gaps * baseSpace;
     const bool just = justified_ && words.size() > 1 && extra > 0;
 
     QVector<int> wordX(words.size());
