@@ -1,0 +1,28 @@
+# 构建与分发
+/build/
+/dist/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.app/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile.user
+*.user
+*.autosave
+
+# IDE / 系统
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# 本地打包产物
+*.zip
+*.tar.gz

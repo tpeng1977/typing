@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="data/wubi_char.txt">wubi_char.txt</file>
+        <file alias="data/pinyin.txt">pinyin.txt</file>
+        <file alias="data/words.txt">words.txt</file>
+        <file alias="data/articles.json">articles.json</file>
+        <file alias="data/sentences.json">data/sentences.json</file>
+        <file alias="data/enwords.json">data/enwords.json</file>
+        <file alias="app_icon.png">app_icon.png</file>
+        <file alias="app_icon.ico">app_icon.ico</file>
+    </qresource>
+</RCC>
